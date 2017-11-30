@@ -60,12 +60,12 @@ public class App
     	}
     	
     	String veda_url;
-    	try {
-    		veda_url = config.get("veda");
-    	} catch (Exception e) {
-    		System.err.println("ERR! Config key 'veda' is not set");
-    		return;
-    	}
+
+   		if (!config.containsKey("veda")) {
+   			System.err.println("ERR! Config key 'veda' is not set");
+   			return;
+   		}
+   		veda_url = config.get("veda");
     	
     	try {
     		veda = new VedaConnection(veda_url, "ImportDMSToVeda",
@@ -89,32 +89,53 @@ public class App
     	 * "v-s:name":[(String)funout]], OK, CRC32(4294967295))]*/
     	
     	String fromClass, toClass;
-    	try {
-    		fromClass = config.get("from_class");
-    	} catch (Exception e) {
-    		System.err.println("ERR! Config key 'from_class' is not ser");
-    		return;
-    	}
+
+   		if (!config.containsKey("from_class")) {
+   			System.err.println("ERR! Config key 'from_class' is not set");
+  			return;
+   		}
+   		fromClass = config.get("from_class");
     	
-    	try {
-    		toClass = config.get("to_class");
-    	} catch (Exception e) {
+    	if (!config.containsKey("to_class")) {
     		System.err.println("ERR! Config key 'to_class' is not ser");
     		return;
+    	}
+    	toClass = config.get("to_class");
+    	
+    	String ba2vedaPath;
+    	if (!config.containsKey("ba2veda_path")) {
+    		System.err.println("ERR! Config key 'ba2veda_path' is not set");
+    		return;
+    	}
+    	ba2vedaPath = config.get("ba2veda_path");
+    	
+    	
+    	Boolean exportToVeda = false;
+    	if (config.containsKey("export_to_veda")) {
+    		if (config.get("export_to_veda").equals("true")) 
+    			exportToVeda = true;
     	}
     	
     	String docDbUser, docDbPassword, docDbUrl;
     	try {
     		docDbUser = config.get("doc_db_user");
+    		if (!config.containsKey("doc_db_user")) {
+    			System.err.println("ERR! Config key 'doc_db_user' is not set");
+    			return;
+    		}
     	} catch (Exception e) {
-    		System.err.println("ERR! Config key 'doc_db_user' is not set");
+    		e.printStackTrace();
     		return;
     	}
     	
     	try {
     		docDbPassword = config.get("doc_db_password");
+    		if (!config.containsKey("doc_db_password")) {
+    			System.err.println("ERR! Config key 'doc_db_password' is not set");
+    			return;
+    		}
     	} catch (Exception e) {
-    		System.err.println("ERR! Config key 'doc_db_password' is not set");
+    		e.printStackTrace();
     		return;
     	}
     	
@@ -136,23 +157,35 @@ public class App
     	
     	String vedaDbUser, vedaDbPassword, vedaDbUrl;
     	try {
+    		if (!config.containsKey("veda_db_user")) {
+    			System.err.println("ERR! Config key 'veda_db_user' is not set");
+    			return;
+    		}
     		vedaDbUser = config.get("veda_db_user");
     	} catch (Exception e) {
-    		System.err.println("ERR! Config key 'veda_db_user' is not set");
+    		e.printStackTrace();
     		return;
     	}
     	
     	try {
+    		if (!config.containsKey("veda_db_password")) {
+    			System.err.println("ERR! Config key 'veda_db_password' is not set");
+    			return;
+    		}
     		vedaDbPassword = config.get("veda_db_password");
     	} catch (Exception e) {
-    		System.err.println("ERR! Config key 'veda_db_password' is not set");
+    		e.printStackTrace();
     		return;
     	}
     	
     	try {
+    		if (!config.containsKey("veda_db_url")) {
+    			System.err.println("ERR! Config key 'veda_db_url' is not set");
+    			return;
+    		}
     		vedaDbUrl = config.get("veda_db_url");
     	} catch (Exception e) {
-    		System.err.println("ERR! Config key 'veda_db_url' is not set");
+    		e.printStackTrace();
     		return;
     	}
     	
@@ -188,6 +221,10 @@ public class App
     		try {
     			Individual indv = veda.getIndividual("d:" + docUris.get(i));
     			if (indv == null) {
+    				if (exportToVeda) {
+    					System.out.println("EXPORT");
+    				} 
+    					
     				System.out.println(String.format("d:%s not found in OF", docUris.get(i)));
     				continue;
     			}
