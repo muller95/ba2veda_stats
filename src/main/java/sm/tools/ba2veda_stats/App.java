@@ -1,7 +1,9 @@
 package sm.tools.ba2veda_stats;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -108,6 +110,13 @@ public class App
     		return;
     	}
     	ba2vedaPath = config.get("ba2veda_path");
+    	
+    	String ba2vedaDir;
+    	if (!config.containsKey("ba2veda_dir")) {
+    		System.err.println("ERR! Config key 'ba2veda_path' is not set");
+    		return;
+    	}
+    	ba2vedaDir = config.get("ba2veda_dir");
     	
     	
     	Boolean exportToVeda = false;
@@ -221,11 +230,44 @@ public class App
     		try {
     			Individual indv = veda.getIndividual("d:" + docUris.get(i));
     			if (indv == null) {
+    				System.out.println(String.format("d:%s not found in OF", docUris.get(i)));
     				if (exportToVeda) {
     					System.out.println("EXPORT");
-    				} 
-    					
-    				System.out.println(String.format("d:%s not found in OF", docUris.get(i)));
+//    					target/ba2veda-jar-with-dependencies.jar
+//    					String cmd = String.format("java -jar %s %s/%s/%s", ba2vedaPath, fromClass, toClass, docUris.get(i));
+//    					String cmd = String.format("java -Djava.library.path=/usr/local/lib -jar target/ba2veda-jar-with-dependencies.jar %s/%s/%s", fromClass, toClass, docUris.get(i));
+    					String cmd = "java";
+    					int a = 2 + 2;
+    					a = 2 + a;
+    					try {
+    						String arg = String.format("%s/%s/%s", fromClass, toClass, docUris.get(i));
+    						ProcessBuilder pb = new ProcessBuilder(cmd, "-Djava.library.path=/usr/local/lib", "-jar", 
+    								"target/ba2veda-jar-with-dependencies.jar", arg);
+    						pb.directory(new File(ba2vedaDir));
+//    						p = pb.start();
+    						Process ba2veda = pb.start();
+    						BufferedReader errReader = new BufferedReader(new InputStreamReader(ba2veda.getErrorStream()));
+    						BufferedReader outReader = new BufferedReader(new InputStreamReader(ba2veda.getInputStream()));
+    						String line = null;
+//    						ba2veda.wait();
+    						ba2veda.waitFor();
+    						System.out.println("ba2veda output: [");
+    						while ((line = outReader.readLine()) != null) {
+    							System.out.println("\t"+line);
+    						}
+    						System.out.println("]");
+    						
+    						System.out.println("ba2veda error output: [");
+    						while ((line = errReader.readLine()) != null) {
+    							System.out.println("\t"+line);
+    						}
+    						System.out.println("]");
+    						
+    					} catch (Exception e) {
+    						e.printStackTrace();
+    						return;
+    					}
+    				} 				
     				continue;
     			}
     			
