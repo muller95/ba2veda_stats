@@ -125,6 +125,11 @@ public class App
     			exportToVeda = true;
     	}
     	
+    	Boolean exportToSql = false;
+    	if (config.containsKey("export_to_sql"))
+    		if (config.get("export_to_sql").equals("true"))
+    			exportToSql = true;
+    	
     	String docDbUser, docDbPassword, docDbUrl;
     	try {
     		docDbUser = config.get("doc_db_user");
@@ -232,13 +237,8 @@ public class App
     			if (indv == null) {
     				System.out.println(String.format("d:%s not found in OF", docUris.get(i)));
     				if (exportToVeda) {
-    					System.out.println("EXPORT");
-//    					target/ba2veda-jar-with-dependencies.jar
-//    					String cmd = String.format("java -jar %s %s/%s/%s", ba2vedaPath, fromClass, toClass, docUris.get(i));
-//    					String cmd = String.format("java -Djava.library.path=/usr/local/lib -jar target/ba2veda-jar-with-dependencies.jar %s/%s/%s", fromClass, toClass, docUris.get(i));
+    					System.out.println("EXPORT TO VEDA");
     					String cmd = "java";
-    					int a = 2 + 2;
-    					a = 2 + a;
     					try {
     						String arg = String.format("%s/%s/%s", fromClass, toClass, docUris.get(i));
     						ProcessBuilder pb = new ProcessBuilder(cmd, "-Djava.library.path=/usr/local/lib", "-jar", 
@@ -282,8 +282,12 @@ public class App
     			PreparedStatement ps = vedaDbConn.prepareStatement(query);
     			ps.setString(1, docUris.get(i));
     			ResultSet rs = ps.executeQuery();
-    			if (!rs.next())
+    			
+    			Boolean rdfs_label = true;
+    			if (!rs.next()) {
     				System.out.println(String.format("d:%s not found in rdfs:label", docUris.get(i)));
+    				rdfs_label = false;
+    			}
     			rs.close();
     			ps.close();
     			
@@ -291,8 +295,48 @@ public class App
     			ps = vedaDbConn.prepareStatement(query);
     			ps.setString(1, docUris.get(i));
     			rs = ps.executeQuery();
-    			if (!rs.next())
+    			
+    			Boolean rdf_type = true;
+    			if (!rs.next()) {
     				System.out.println(String.format("d:%s not found in rdf:type", docUris.get(i)));
+    				rdf_type = false;
+    			}
+    			
+    			if ((!rdf_type || !rdfs_label) && exportToSql) {
+    				System.out.println("EXPORT TO SQL");
+    				System.out.println("EXPORT TO VEDA");
+					String cmd = "java";
+					try {
+						String arg = String.format("%s/%s/%s", fromClass, toClass, docUris.get(i));
+						ProcessBuilder pb = new ProcessBuilder(cmd, "-Djava.library.path=/usr/local/lib", "-jar",
+								"target/ba2veda-jar-with-dependencies.jar", "-subsystem32", arg);
+						pb.directory(new File(ba2vedaDir));
+//						p = pb.start();
+						Process ba2veda = pb.start();
+						BufferedReader errReader = new BufferedReader(new InputStreamReader(ba2veda.getErrorStream()));
+						BufferedReader outReader = new BufferedReader(new InputStreamReader(ba2veda.getInputStream()));
+						String line = null;
+//						ba2veda.wait();
+						ba2veda.waitFor();
+						System.out.println("ba2veda output: [");
+						while ((line = outReader.readLine()) != null) {
+							System.out.println("\t"+line);
+						}
+						System.out.println("]");
+						
+						System.out.println("ba2veda error output: [");
+						while ((line = errReader.readLine()) != null) {
+							System.out.println("\t"+line);
+						}
+						System.out.println("]");
+						
+					} catch (Exception e) {
+						e.printStackTrace();
+						return;
+					}
+    				int a = 2 + 2;
+    				a = 2 + a;
+    			}
     			rs.close();
     			ps.close();
     		} catch (Exception e) {
