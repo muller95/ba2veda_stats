@@ -9,7 +9,9 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 
 import sm.tools.veda_client.Individual;
@@ -131,34 +133,25 @@ public class App
     			exportToSql = true;
     	
     	String docDbUser, docDbPassword, docDbUrl;
-    	try {
-    		docDbUser = config.get("doc_db_user");
-    		if (!config.containsKey("doc_db_user")) {
-    			System.err.println("ERR! Config key 'doc_db_user' is not set");
-    			return;
-    		}
-    	} catch (Exception e) {
-    		e.printStackTrace();
-    		return;
-    	}
+
+   		docDbUser = config.get("doc_db_user");
+   		if (!config.containsKey("doc_db_user")) {
+   			System.err.println("ERR! Config key 'doc_db_user' is not set");
+   			return;
+   		}
     	
-    	try {
-    		docDbPassword = config.get("doc_db_password");
-    		if (!config.containsKey("doc_db_password")) {
-    			System.err.println("ERR! Config key 'doc_db_password' is not set");
-    			return;
-    		}
-    	} catch (Exception e) {
-    		e.printStackTrace();
-    		return;
-    	}
+   		if (!config.containsKey("doc_db_password")) {
+   			System.err.println("ERR! Config key 'doc_db_password' is not set");
+   			return;
+   		}
+   		docDbPassword = config.get("doc_db_password");
     	
-    	try {
-    		docDbUrl = config.get("doc_db_url");
-    	} catch (Exception e) {
-    		System.err.println("ERR! Config key 'doc_db_url' is not set");
-    		return;
-    	}
+    	if (!config.containsKey("doc_db_url")) {
+       		System.err.println("ERR! Config key 'doc_db_url' is not set");
+       		return;
+     	}
+   		docDbUrl = config.get("doc_db_url");
+
     	
 
     	try {
@@ -170,38 +163,25 @@ public class App
     	}
     	
     	String vedaDbUser, vedaDbPassword, vedaDbUrl;
-    	try {
-    		if (!config.containsKey("veda_db_user")) {
-    			System.err.println("ERR! Config key 'veda_db_user' is not set");
-    			return;
-    		}
-    		vedaDbUser = config.get("veda_db_user");
-    	} catch (Exception e) {
-    		e.printStackTrace();
+    	if (!config.containsKey("veda_db_user")) {
+    		System.err.println("ERR! Config key 'veda_db_user' is not set");
     		return;
     	}
+    	vedaDbUser = config.get("veda_db_user");
+
     	
-    	try {
-    		if (!config.containsKey("veda_db_password")) {
-    			System.err.println("ERR! Config key 'veda_db_password' is not set");
-    			return;
-    		}
-    		vedaDbPassword = config.get("veda_db_password");
-    	} catch (Exception e) {
-    		e.printStackTrace();
-    		return;
-    	}
+
+   		if (!config.containsKey("veda_db_password")) {
+   			System.err.println("ERR! Config key 'veda_db_password' is not set");
+   			return;
+   		}
+   		vedaDbPassword = config.get("veda_db_password");
     	
-    	try {
-    		if (!config.containsKey("veda_db_url")) {
-    			System.err.println("ERR! Config key 'veda_db_url' is not set");
-    			return;
-    		}
-    		vedaDbUrl = config.get("veda_db_url");
-    	} catch (Exception e) {
-    		e.printStackTrace();
+    	if (!config.containsKey("veda_db_url")) {
+    		System.err.println("ERR! Config key 'veda_db_url' is not set");
     		return;
     	}
+    	vedaDbUrl = config.get("veda_db_url");
     	
 
     	try {
@@ -213,11 +193,40 @@ public class App
     		return;
     	}
     	
+    	Date dateFrom = null, dateTo = null;
+    	SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+    	try {
+	    	if (config.containsKey("date_from"))
+	    		dateFrom = df.parse(config.get("date_from"));
+	    	if (config.containsKey("date_to"))
+	    		dateTo = df.parse(config.get("date_to")); 
+    	} catch (Exception e) {
+    		e.printStackTrace();
+    		return;
+    	}
+    	
     	String queryStr = "SELECT recordId, objectId FROM objects WHERE isDraft = 0 AND templateId = ? AND actual = 1";
+    	if (dateFrom != null && dateTo != null)
+    		queryStr = "SELECT recordId, objectId FROM objects WHERE isDraft = 0 AND templateId = ? AND "
+    				+ " timestamp > ? AND timestamp < ? AND actual = 1";
+    	else if (dateFrom != null && dateTo == null)
+    		queryStr = "SELECT recordId, objectId FROM objects WHERE isDraft = 0 AND templateId = ? AND "
+    				+ "timestamp > ? AND actual = 1";
+    	else if (dateFrom == null && dateTo != null)
+    		queryStr = "SELECT recordId, objectId FROM objects WHERE isDraft = 0 AND templateId = ? AND "
+    				+ "timestamp < ? AND actual = 1";
+    	
     	ArrayList<String> docUris = new ArrayList<String>();
     	try {
 			PreparedStatement ps = docDbConn.prepareStatement(queryStr);
 			ps.setString(1, fromClass);
+			if (dateFrom != null && dateTo != null) {
+				ps.setLong(2, dateFrom.getTime());
+				ps.setLong(3, dateTo.getTime());
+			} else if (dateFrom != null && dateTo == null)
+				ps.setLong(2, dateFrom.getTime());
+			else if (dateFrom == null && dateTo != null)
+				ps.setLong(2, dateTo.getTime());
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
 				String uri = rs.getString(2);
