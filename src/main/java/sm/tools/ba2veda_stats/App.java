@@ -286,6 +286,7 @@ public class App
     			if (deleted != null) {
     				if (deleted.resources.get(0).getData() == "true")
     					System.out.println(String.format("d:%s deleted in OF", docUris.get(i)));
+    				continue;
     			}
     			
     			String query;
