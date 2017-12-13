@@ -241,6 +241,9 @@ public class App
     	
     	System.out.println(String.format("BA: %s | OF: %s", fromClass, toClass));
     	for (int i = 0; i < docUris.size(); i++) {
+    		if (!docUris.get(i).equals("b3cbe4c91e85466e96536619889e5046")) {
+    			continue;
+    		}
     		try {
     			Individual indv = veda.getIndividual("d:" + docUris.get(i));
     			if (indv == null) {
@@ -302,7 +305,7 @@ public class App
     			
     			query = "select doc_id from `rdf:type` doc_id where doc_id=?";
     			ps = vedaDbConn.prepareStatement(query);
-    			ps.setString(1, docUris.get(i));
+    			ps.setString(1, "d:" + docUris.get(i));
     			rs = ps.executeQuery();
     			
     			Boolean rdf_type = true;
@@ -313,7 +316,6 @@ public class App
     			
     			if ((!rdf_type || !rdfs_label) && exportToSql) {
     				System.out.println("EXPORT TO SQL");
-    				System.out.println("EXPORT TO VEDA");
 					String cmd = "java";
 					try {
 						String arg = String.format("%s/%s/%s", fromClass, toClass, docUris.get(i));
