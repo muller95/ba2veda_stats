@@ -205,16 +205,18 @@ public class App
     		return;
     	}
     	
-    	String queryStr = "SELECT recordId, objectId FROM objects WHERE isDraft = 0 AND templateId = ? AND actual = 1";
+    	String queryStr = "SELECT recordId, objectId FROM objects WHERE isDraft = 0 AND templateId = ? "
+    			+ "AND actual = 1 AND LOCATE('<active>true', LEFT(content,120))>0";
     	if (dateFrom != null && dateTo != null)
     		queryStr = "SELECT recordId, objectId FROM objects WHERE isDraft = 0 AND templateId = ? AND "
-    				+ " timestamp > ? AND timestamp < ? AND actual = 1";
+    				+ " timestamp > ? AND timestamp < ? AND actual = 1 "
+    				+ "AND LOCATE('<active>true', LEFT(content,120))>0";
     	else if (dateFrom != null && dateTo == null)
     		queryStr = "SELECT recordId, objectId FROM objects WHERE isDraft = 0 AND templateId = ? AND "
-    				+ "timestamp > ? AND actual = 1";
+    				+ "timestamp > ? AND actual = 1 AND LOCATE('<active>true', LEFT(content,120))>0";
     	else if (dateFrom == null && dateTo != null)
     		queryStr = "SELECT recordId, objectId FROM objects WHERE isDraft = 0 AND templateId = ? AND "
-    				+ "timestamp < ? AND actual = 1";
+    				+ "timestamp < ? AND actual = 1 AND LOCATE('<active>true', LEFT(content,120))>0";
     	
     	ArrayList<String> docUris = new ArrayList<String>();
     	try {
