@@ -241,6 +241,9 @@ public class App
     	
     	System.out.println(String.format("BA: %s | OF: %s", fromClass, toClass));
     	for (int i = 0; i < docUris.size(); i++) {
+    		if (!docUris.get(i).equals("af7fbb89658d40c693ab0fb79037ee16")) {
+    			continue;
+    		}
     		try {
     			Individual indv = veda.getIndividual("d:" + docUris.get(i));
     			if (indv == null) {
@@ -289,7 +292,7 @@ public class App
     			String query;
     			query = "select doc_id from `rdfs:label` doc_id where doc_id=?";
     			PreparedStatement ps = vedaDbConn.prepareStatement(query);
-    			ps.setString(1, docUris.get(i));
+    			ps.setString(1, "d:" + docUris.get(i));
     			ResultSet rs = ps.executeQuery();
     			
     			Boolean rdfs_label = true;
