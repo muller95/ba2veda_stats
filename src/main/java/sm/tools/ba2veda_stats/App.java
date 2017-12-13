@@ -240,10 +240,9 @@ public class App
 		}
     	
     	System.out.println(String.format("BA: %s | OF: %s", fromClass, toClass));
+    	System.out.println(String.format("Number of uris: %d", docUris.size()));
     	for (int i = 0; i < docUris.size(); i++) {
-    		if (!docUris.get(i).equals("b3cbe4c91e85466e96536619889e5046")) {
-    			continue;
-    		}
+    		System.out.println(String.format("Progress: [%d/%d/%s]", i+1, docUris.size(), docUris.get(i)));
     		try {
     			Individual indv = veda.getIndividual("d:" + docUris.get(i));
     			if (indv == null) {
