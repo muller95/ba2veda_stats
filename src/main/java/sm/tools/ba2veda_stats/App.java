@@ -241,9 +241,6 @@ public class App
     	
     	System.out.println(String.format("BA: %s | OF: %s", fromClass, toClass));
     	for (int i = 0; i < docUris.size(); i++) {
-    		if (!docUris.get(i).equals("af7fbb89658d40c693ab0fb79037ee16")) {
-    			continue;
-    		}
     		try {
     			Individual indv = veda.getIndividual("d:" + docUris.get(i));
     			if (indv == null) {
