@@ -255,7 +255,7 @@ public class App
     					try {
     						String arg = String.format("%s/%s/%s", fromClass, toClass, docUris.get(i));
     						ProcessBuilder pb = new ProcessBuilder(cmd, "-Djava.library.path=/usr/local/lib", "-jar", 
-    								"target/ba2veda-jar-with-dependencies.jar", arg);
+    								"target/ba2veda.jar", arg);
     						pb.directory(new File(ba2vedaDir));
 //    						p = pb.start();
     						Process ba2veda = pb.start();
